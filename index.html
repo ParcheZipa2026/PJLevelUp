@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premios Juventud Level Up 2026 — Vota por tu favorito</title>
+<meta name="description" content="Vota por los postulados a los Premios Juventud Level Up 2026, Semana de la Juventud de Zipaquirá. Votación hasta el 20 de septiembre.">
+
+<!-- Open Graph para que se vea bien al compartir por WhatsApp -->
+<meta property="og:title" content="Premios Juventud Level Up 2026 — Vota por tu favorito">
+<meta property="og:description" content="Semana de la Juventud de Zipaquirá. Vota hasta el 20 de septiembre.">
+<meta property="og:image" content="assets/logo-zipafest.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="bolt-bg">
+  <svg class="b1" viewBox="0 0 100 160" fill="var(--yellow)"><polygon points="60,0 20,90 45,90 30,160 90,60 60,60"/></svg>
+  <svg class="b2" viewBox="0 0 100 160" fill="var(--green)"><polygon points="60,0 20,90 45,90 30,160 90,60 60,60"/></svg>
+  <svg class="b3" viewBox="0 0 100 160" fill="var(--blue)"><polygon points="60,0 20,90 45,90 30,160 90,60 60,60"/></svg>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/logo-parche-zipa.png" alt="Parche Zipa">
+    <div class="brand-text">LEVEL UP<small>Premios Juventud 2026</small></div>
+  </div>
+  <div class="countdown-chip" id="countdownChip">Cargando...</div>
+</header>
+
+<section class="hero">
+  <video autoplay muted loop playsinline poster="assets/logo-zipafest.png">
+    <source src="assets/hero-video.mp4" type="video/mp4">
+  </video>
+  <div class="hero-content">
+    <img class="hero-logo" src="assets/logo-zipafest.png" alt="Semana de la Juventud 2026">
+    <h1>¡VOTA POR TU FAVORITO!</h1>
+    <p class="lead">Elige a los ganadores de los Premios Juventud Level Up 2026. Un voto por categoría, directo desde tu celular.</p>
+    <div class="dates">🗓️ Votación abierta hasta el <b>20 de septiembre</b></div>
+    <div class="countdown-big" id="countdownBig"></div>
+    <div class="scroll-cue">⬇ desliza para ver las categorías ⬇</div>
+  </div>
+</section>
+
+<div class="cat-nav-wrap">
+  <nav class="cat-nav" id="catNav"></nav>
+</div>
+
+<main id="sections"></main>
+
+<footer>
+  <img src="assets/logo-parche-zipa.png" alt="Parche Zipa">
+  <div>Premios Juventud Level Up 2026 · Semana de la Juventud, Zipaquirá</div>
+  <div>Secretaría de Familia y Desarrollo Social — Alcaldía de Zipaquirá</div>
+  <div class="fine">Cada persona puede votar una vez por categoría. Los resultados se anunciarán al cierre de la votación.</div>
+</footer>
+
+<div class="overlay" id="overlay">
+  <div id="overlayContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
