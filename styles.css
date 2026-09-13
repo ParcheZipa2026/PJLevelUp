@@ -25,7 +25,7 @@ body{
   overflow-x:hidden;
 }
 
-.font-display{font-family:'Bangers',system-ui,sans-serif; letter-spacing:0.5px;}
+.font-display{font-family:'Unbounded',system-ui,sans-serif; font-weight:800; letter-spacing:-0.5px;}
 
 a{color:inherit;}
 img{max-width:100%; display:block;}
@@ -50,7 +50,7 @@ img{max-width:100%; display:block;}
 }
 .topbar .brand{display:flex; align-items:center; gap:10px;}
 .topbar .brand img{height:38px; width:auto;}
-.topbar .brand-text{font-family:'Bangers',sans-serif; font-size:1.3rem; line-height:1; letter-spacing:0.5px;}
+.topbar .brand-text{font-family:'Unbounded',sans-serif; font-weight:800; font-size:1.05rem; line-height:1.15; letter-spacing:-0.3px;}
 .topbar .brand-text small{display:block; font-family:'Poppins',sans-serif; font-size:0.6rem; color:var(--text-dim); letter-spacing:1.5px; text-transform:uppercase;}
 .countdown-chip{
   display:flex; align-items:center; gap:8px;
@@ -77,11 +77,11 @@ img{max-width:100%; display:block;}
 .hero-content{position:relative; z-index:2; padding:40px 18px; max-width:900px;}
 .hero-logo{width:min(340px, 70vw); margin:0 auto 10px;}
 .hero h1{
-  font-family:'Bangers',sans-serif; font-size:clamp(2.4rem, 7vw, 4.6rem);
-  margin:6px 0; line-height:0.95;
+  font-family:'Unbounded',sans-serif; font-weight:800; font-size:clamp(1.9rem, 6vw, 3.4rem);
+  margin:6px 0; line-height:1.08; letter-spacing:-1px;
   background:linear-gradient(90deg, var(--yellow), var(--orange), var(--green));
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  text-shadow:0 0 40px rgba(255,225,77,0.25);
+  text-shadow:0 0 40px rgba(255,225,77,0.18);
 }
 .hero p.lead{color:var(--text-dim); font-size:1.05rem; max-width:600px; margin:10px auto 22px;}
 .hero .dates{
@@ -97,7 +97,7 @@ img{max-width:100%; display:block;}
   padding:12px 16px; min-width:74px;
   box-shadow:var(--shadow);
 }
-.countdown-big .unit .num{font-family:'Bangers',sans-serif; font-size:1.9rem; color:var(--yellow); display:block;}
+.countdown-big .unit .num{font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.5rem; color:var(--yellow); display:block;}
 .countdown-big .unit .lbl{font-size:0.65rem; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim);}
 
 .scroll-cue{margin-top:34px; font-size:0.8rem; color:var(--text-dim); animation:bounce 1.8s infinite;}
@@ -135,13 +135,15 @@ main{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:20px
   display:flex; align-items:center; gap:14px; margin-bottom:6px;
 }
 .cat-title .emoji{font-size:2rem;}
-.cat-title h2{font-family:'Bangers',sans-serif; font-size:1.9rem; letter-spacing:0.5px; margin:0;
+.cat-title h2{font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.35rem; letter-spacing:-0.3px; margin:0;
   background:linear-gradient(90deg, var(--text), var(--text-dim));
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 .cat-sub{color:var(--text-dim); font-size:0.85rem; margin:0 0 20px 46px;}
 
 .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:18px;}
+
+.loading-msg{text-align:center; color:var(--text-dim); padding:70px 18px; font-size:0.95rem;}
 
 .card{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
@@ -200,7 +202,7 @@ main{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:20px
   display:inline-flex; align-items:center; gap:6px; font-size:0.75rem;
   color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;
 }
-.modal h2{font-family:'Bangers',sans-serif; font-size:1.7rem; margin:0 0 4px;}
+.modal h2{font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.3rem; letter-spacing:-0.3px; margin:0 0 4px;}
 .modal .barrio{color:var(--text-dim); font-size:0.85rem; margin:0 0 14px;}
 .modal .stat-row{display:flex; flex-wrap:wrap; gap:10px; margin:14px 0;}
 .modal .stat{
@@ -221,7 +223,7 @@ main{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:20px
   box-shadow:0 30px 80px rgba(0,0,0,0.6);
 }
 .confirm-box .bolt{font-size:2.4rem;}
-.confirm-box h3{font-family:'Bangers',sans-serif; font-size:1.4rem; margin:8px 0 4px;}
+.confirm-box h3{font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.15rem; letter-spacing:-0.2px; margin:8px 0 4px;}
 .confirm-box p{color:var(--text-dim); font-size:0.88rem;}
 .confirm-box .modal-actions{justify-content:center;}
 
@@ -234,6 +236,42 @@ main{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:20px
 .toast.show{transform:translate(-50%, 0);}
 .toast .ic{font-size:1.3rem;}
 .toast.error{border-color:rgba(255,77,109,0.5);}
+
+/* ===== Finalizar votación ===== */
+.finish-cta{
+  position:relative; z-index:1; max-width:640px; margin:60px auto 0; padding:0 18px;
+  text-align:center;
+}
+.finish-inner{
+  background:linear-gradient(155deg, var(--panel), var(--panel-2));
+  border:1px solid rgba(255,225,77,0.25); border-radius:22px;
+  padding:34px 26px; box-shadow:var(--shadow);
+}
+.finish-inner h2{font-size:1.5rem; margin:0 0 8px; color:var(--text);}
+.finish-inner p{color:var(--text-dim); font-size:0.88rem; margin:0 0 20px;}
+.finish-inner .btn-vote{padding:12px 28px; font-size:0.9rem;}
+
+.floating-finish{
+  position:fixed; right:18px; bottom:22px; z-index:60;
+  display:flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg, var(--yellow), var(--orange));
+  color:#241000; border:none; border-radius:999px;
+  padding:12px 18px; font-size:1.1rem; font-weight:700; cursor:pointer;
+  box-shadow:0 10px 30px rgba(255,106,26,0.4);
+  transition:transform .15s ease;
+}
+.floating-finish:hover{transform:translateY(-2px);}
+.floating-finish span{font-family:'Poppins',sans-serif; font-size:0.8rem;}
+@media (max-width:520px){
+  .floating-finish span{display:none;}
+  .floating-finish{padding:14px; font-size:1.3rem;}
+}
+
+/* ===== Pantalla de cierre (invitación a la ceremonia) ===== */
+.cierre-modal{max-width:480px;}
+.cierre-img{width:100%; display:block;}
+.cierre-modal .modal-body{text-align:center;}
+.cierre-modal h2{font-size:1.4rem;}
 
 /* ===== Footer ===== */
 footer{
