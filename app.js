@@ -183,15 +183,26 @@ function categoriasConCandidatos(){
 }
 
 function updateFinishProgress(){
-  if(!els.finishProgress) return;
   const activas = categoriasConCandidatos();
   const votadas = activas.filter(cat => hasVoted(cat.id)).length;
-  if(votadas === 0){
-    els.finishProgress.textContent = "Aún no has votado en ninguna categoría.";
-  } else if(votadas === activas.length){
-    els.finishProgress.textContent = `¡Votaste en las ${activas.length} categorías! Cuando quieras, dale a Finalizar.`;
-  } else {
-    els.finishProgress.textContent = `Has votado en ${votadas} de ${activas.length} categorías.`;
+  const faltan = activas.length - votadas;
+  const completo = activas.length > 0 && faltan === 0;
+
+  if(els.finishProgress){
+    if(votadas === 0){
+      els.finishProgress.textContent = `Vota en las ${activas.length} categorías para poder finalizar.`;
+    } else if(!completo){
+      els.finishProgress.textContent = `Te falta${faltan===1?"":"n"} ${faltan} categoría${faltan===1?"":"s"} por votar.`;
+    } else {
+      els.finishProgress.textContent = `¡Votaste en las ${activas.length} categorías! Ya puedes finalizar.`;
+    }
+  }
+  if(els.btnFinalizar){
+    els.btnFinalizar.disabled = !completo;
+    els.btnFinalizar.textContent = completo ? "🏁 Finalizar votación" : `🏁 Vota en todas para finalizar (faltan ${faltan})`;
+  }
+  if(els.floatingFinalizar){
+    els.floatingFinalizar.disabled = !completo;
   }
 }
 
@@ -317,26 +328,64 @@ function tickCountdown(){
 }
 
 // ---------- Init ----------
+// Filtra y completa cualquier postulado mal formado que pueda llegar desde el
+// Sheet (por ejemplo, si a alguien le falta el nombre o la categoría no se
+// reconoció), para que una sola fila con datos raros no rompa toda la página.
+function sanearPostulados(lista){
+  if(!Array.isArray(lista)) return [];
+  const catIds = new Set(CATEGORIAS.map(c=>c.id));
+  return lista
+    .filter(p => p && p.id && p.nombre && catIds.has(p.categoria))
+    .map(p => Object.assign({
+      barrio: "", organizacion: "", resumen: "", historia: "",
+      tiempo: "", beneficiarios: "", logro: "", fotoId: "", evidenciaIds: []
+    }, p));
+}
+
+function mostrarErrorCarga(){
+  els.sections.innerHTML = `
+    <div class="loading-msg">
+      <p>⚠️ No pudimos mostrar los postulados. Intenta recargar la página.</p>
+      <button class="btn btn-ghost" id="btnReintentar" style="margin-top:10px">Reintentar</button>
+    </div>`;
+  const btn = document.getElementById("btnReintentar");
+  if(btn) btn.onclick = () => location.reload();
+}
+
 async function init(){
   tickCountdown();
   setInterval(tickCountdown, 1000);
 
   els.sections.innerHTML = `<p class="loading-msg">⚡ Cargando postulados desde el Sheet...</p>`;
+
+  let usandoRespaldo = false;
   try{
     const resp = await cargarPostulados();
-    POSTULADOS = (resp.postulados && resp.postulados.length) ? resp.postulados : POSTULADOS_FALLBACK;
+    const limpios = sanearPostulados(resp.postulados);
+    if(limpios.length){
+      POSTULADOS = limpios;
+    } else {
+      POSTULADOS = POSTULADOS_FALLBACK;
+      usandoRespaldo = true;
+    }
   }catch(err){
     console.warn("Mostrando datos de respaldo (no se pudo leer el Sheet en vivo):", err.message);
     POSTULADOS = POSTULADOS_FALLBACK;
+    usandoRespaldo = true;
   }
 
-  renderCatNav();
-  renderSections();
-  wireCardEvents();
-  wireCatNav();
-  updateFinishProgress();
-
-  if(els.btnFinalizar) els.btnFinalizar.onclick = mostrarCierre;
-  if(els.floatingFinalizar) els.floatingFinalizar.onclick = mostrarCierre;
+  try{
+    renderCatNav();
+    renderSections();
+    wireCardEvents();
+    wireCatNav();
+    updateFinishProgress();
+    if(els.btnFinalizar) els.btnFinalizar.onclick = mostrarCierre;
+    if(els.floatingFinalizar) els.floatingFinalizar.onclick = mostrarCierre;
+    if(usandoRespaldo) showToast("Mostrando datos de respaldo: no se pudo conectar en vivo con el Sheet.", true);
+  }catch(err){
+    console.error("Error al dibujar la página:", err);
+    mostrarErrorCarga();
+  }
 }
 document.addEventListener("DOMContentLoaded", init);
