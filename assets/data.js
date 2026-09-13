@@ -1,6 +1,12 @@
 // Datos de postulados - Premios Juventud Level Up 2026
 // Fuente: Google Sheet (id: 1oBT637KrxIOFDLeAqNr1OZoCw-mTcAAWTr3GVM9OkaE)
-// Generado a partir de la información compartida por Ju. Revisar antes de publicar.
+//
+// IMPORTANTE: desde que se activó la sincronización automática, esta lista
+// (POSTULADOS_FALLBACK) ya NO es la fuente principal. La página intenta
+// primero leer los postulados en vivo directo del Sheet a través de Apps
+// Script (ver apps-script/Code.gs, acción "list"). Esta lista solo se usa
+// como respaldo si esa conexión falla o si CONFIG.APPS_SCRIPT_URL en app.js
+// todavía no está configurado. No hace falta mantenerla actualizada a mano.
 
 const CATEGORIAS = [
   { id: "cambio-social", emoji: "✨", nombre: "Agente de Cambio Social" },
@@ -19,7 +25,7 @@ function driveImg(id, size) {
   return `https://drive.google.com/thumbnail?id=${id}&sz=w${size || 1000}`;
 }
 
-const POSTULADOS = [
+const POSTULADOS_FALLBACK = [
   {
     id: "santiago-delgado",
     categoria: "cambio-social",
