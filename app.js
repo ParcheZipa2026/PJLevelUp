@@ -3,15 +3,18 @@
 // ==========================================================
 
 const CONFIG = {
-  // Pega aquí la URL de tu Web App de Apps Script (ver README para el paso a paso)
+  // URL de tu Web App de Apps Script ya desplegada (ver README para el paso a paso)
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxHeJ3FPjWNRSbR6z0JLrrbl4tZ2AfU930wuETKU5PCqykhPPSwk0q1pG8BeOjQuVr0/exec",
   // Fecha y hora límite de votación (hora de Colombia)
   DEADLINE: new Date("2026-09-20T23:59:59-05:00")
 };
 
-// Lista de postulados en memoria: se llena en init() con lo que llegue en vivo
-// del Sheet, o con POSTULADOS_FALLBACK (assets/data.js) si esa conexión falla.
+// Lista de postulados y categorías en memoria: se llenan en init() con lo que
+// llegue en vivo del Sheet (categorías incluidas — ya no es una lista fija),
+// o con CATEGORIAS_FALLBACK/POSTULADOS_FALLBACK (assets/data.js) si esa
+// conexión falla.
 let POSTULADOS = [];
+let CATEGORIAS = [];
 
 const els = {
   catNav: document.getElementById("catNav"),
@@ -331,12 +334,21 @@ function tickCountdown(){
 }
 
 // ---------- Init ----------
-// Filtra y completa cualquier postulado mal formado que pueda llegar desde el
-// Sheet (por ejemplo, si a alguien le falta el nombre o la categoría no se
-// reconoció), para que una sola fila con datos raros no rompa toda la página.
-function sanearPostulados(lista){
+// Filtra y completa cualquier categoría o postulado mal formado que pueda
+// llegar desde el Sheet, para que una fila con datos raros no rompa toda la
+// página. Las categorías ya no son una lista fija: se arman con lo que
+// devuelva Apps Script (acción "list"), así que cualquier categoría nueva
+// que aparezca en el formulario se muestra sola, sin tocar este archivo.
+function sanearCategorias(lista){
   if(!Array.isArray(lista)) return [];
-  const catIds = new Set(CATEGORIAS.map(c=>c.id));
+  return lista
+    .filter(c => c && c.id && c.nombre)
+    .map(c => Object.assign({ emoji: "🏅" }, c));
+}
+
+function sanearPostulados(lista, categorias){
+  if(!Array.isArray(lista)) return [];
+  const catIds = new Set((categorias || CATEGORIAS).map(c=>c.id));
   return lista
     .filter(p => p && p.id && p.nombre && catIds.has(p.categoria))
     .map(p => Object.assign({
@@ -364,15 +376,19 @@ async function init(){
   let usandoRespaldo = false;
   try{
     const resp = await cargarPostulados();
-    const limpios = sanearPostulados(resp.postulados);
-    if(limpios.length){
-      POSTULADOS = limpios;
+    const categoriasLimpias = sanearCategorias(resp.categorias);
+    const postuladosLimpios = categoriasLimpias.length ? sanearPostulados(resp.postulados, categoriasLimpias) : [];
+    if(categoriasLimpias.length && postuladosLimpios.length){
+      CATEGORIAS = categoriasLimpias;
+      POSTULADOS = postuladosLimpios;
     } else {
+      CATEGORIAS = CATEGORIAS_FALLBACK;
       POSTULADOS = POSTULADOS_FALLBACK;
       usandoRespaldo = true;
     }
   }catch(err){
     console.warn("Mostrando datos de respaldo (no se pudo leer el Sheet en vivo):", err.message);
+    CATEGORIAS = CATEGORIAS_FALLBACK;
     POSTULADOS = POSTULADOS_FALLBACK;
     usandoRespaldo = true;
   }
