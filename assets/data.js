@@ -8,7 +8,9 @@
 // como respaldo si esa conexión falla o si CONFIG.APPS_SCRIPT_URL en app.js
 // todavía no está configurado. No hace falta mantenerla actualizada a mano.
 
-const CATEGORIAS = [
+// Solo se usa si el sitio no logra conectarse en vivo al Sheet (junto con
+// POSTULADOS_FALLBACK, más abajo). No hace falta mantenerla actualizada.
+const CATEGORIAS_FALLBACK = [
   { id: "cambio-social", emoji: "✨", nombre: "Agente de Cambio Social" },
   { id: "talento-deportivo", emoji: "⚽", nombre: "Talento Deportivo" },
   { id: "trayectoria", emoji: "❤️", nombre: "Reconocimiento a la Trayectoria Juvenil" },
