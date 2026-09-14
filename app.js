@@ -4,7 +4,7 @@
 
 const CONFIG = {
   // Pega aquí la URL de tu Web App de Apps Script (ver README para el paso a paso)
-  APPS_SCRIPT_URL: "PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxHeJ3FPjWNRSbR6z0JLrrbl4tZ2AfU930wuETKU5PCqykhPPSwk0q1pG8BeOjQuVr0/exec",
   // Fecha y hora límite de votación (hora de Colombia)
   DEADLINE: new Date("2026-09-20T23:59:59-05:00")
 };
