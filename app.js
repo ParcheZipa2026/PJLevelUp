@@ -4,7 +4,7 @@
 
 const CONFIG = {
   // Pega aquí la URL de tu Web App de Apps Script (ver README para el paso a paso)
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxHeJ3FPjWNRSbR6z0JLrrbl4tZ2AfU930wuETKU5PCqykhPPSwk0q1pG8BeOjQuVr0/exec",
+  APPS_SCRIPT_URL: "PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT",
   // Fecha y hora límite de votación (hora de Colombia)
   DEADLINE: new Date("2026-09-20T23:59:59-05:00")
 };
@@ -90,7 +90,10 @@ function enviarVoto(categoria, postuladoId, nombrePostulado){
 }
 
 function cargarPostulados(){
-  return jsonp({ action:"list" }, 10000).then(resp=>{
+  // 20s de margen: si acaban de llegar postulados nuevos, Apps Script tiene
+  // que hacerles el permiso público en Drive antes de responder, y eso la
+  // primera vez puede tardar unos segundos más de lo normal.
+  return jsonp({ action:"list" }, 20000).then(resp=>{
     if(!resp || !resp.ok) throw new Error((resp && resp.error) || "No se pudo cargar la lista en vivo");
     return resp;
   });
