@@ -106,11 +106,29 @@ function crearVoteToken(){
 // mismo voto más de una vez.
 let envioVotoEnCurso = false;
 
+// Identificador de este navegador/dispositivo (no de la persona): se crea
+// una sola vez y se guarda en localStorage, así que es el mismo en todos
+// los votos que salgan desde aquí. Se manda con cada voto para que quede
+// registrado en la columna "Huella" del Sheet — Session.getTemporaryActiveUserKey()
+// de Apps Script no sirve para esto porque para visitantes anónimos de un
+// Web App público (sin haber iniciado sesión de Google) casi siempre viene
+// vacío, que es por lo que esa columna no se estaba llenando.
+function getDispositivoId(){
+  const key = "dispositivo_lvlup2026";
+  let id;
+  try{ id = localStorage.getItem(key); }catch(e){ /* no disponible */ }
+  if(!id){
+    id = "disp_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    try{ localStorage.setItem(key, id); }catch(e){ /* no disponible */ }
+  }
+  return id;
+}
+
 function enviarVoto(categoria, postuladoId, nombrePostulado, token){
   // 20s de margen, igual que al cargar postulados: con votación en vivo y
   // muchas personas votando a la vez, Apps Script puede tardar más de los
   // 12s por defecto en responder.
-  return jsonp({ action:"vote", categoria, postulado: postuladoId, nombre: nombrePostulado, token }, 20000).then(resp=>{
+  return jsonp({ action:"vote", categoria, postulado: postuladoId, nombre: nombrePostulado, token, dispositivo: getDispositivoId() }, 20000).then(resp=>{
     if(!resp || !resp.ok) throw new Error((resp && resp.error) || "Error desconocido");
     return resp;
   });
