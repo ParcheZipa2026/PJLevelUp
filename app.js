@@ -52,6 +52,11 @@ function openOverlay(html){
   els.overlayContent.querySelectorAll('[data-action="cerrar"]').forEach(b=> b.onclick = closeOverlay);
 }
 function closeOverlay(){
+  // Mientras un voto está en camino no se deja cerrar el diálogo (ni con la
+  // "X", ni con "Cancelar", ni tocando afuera) — así no queda forma de
+  // "salir" y volver a intentar mientras el primer envío todavía puede estar
+  // esperando respuesta del lado del servidor.
+  if(envioVotoEnCurso) return;
   els.overlay.classList.remove("open");
   document.body.style.overflow = "";
 }
@@ -85,11 +90,43 @@ function jsonp(params, timeoutMs){
   });
 }
 
-function enviarVoto(categoria, postuladoId, nombrePostulado){
-  return jsonp({ action:"vote", categoria, postulado: postuladoId, nombre: nombrePostulado }).then(resp=>{
+// Cada intento de voto lleva un "token" propio, generado justo al hacer clic
+// en "Sí, votar" (no se guarda entre recargas de página), para que si Apps
+// Script responde lento y se agota el tiempo de espera, el reintento
+// automático avise al servidor que es EL MISMO intento y no lo cuente dos
+// veces. Solo vive en memoria mientras dura ese intento.
+function crearVoteToken(){
+  return "tok_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+}
+
+// Bandera global: mientras haya un voto en camino (esperando respuesta de
+// Apps Script), no se deja iniciar otro. Esto evita que un doble clic/doble
+// toque, o cancelar el diálogo y volver a intentar mientras el primer envío
+// todavía sigue en curso del lado del servidor, terminen registrando el
+// mismo voto más de una vez.
+let envioVotoEnCurso = false;
+
+function enviarVoto(categoria, postuladoId, nombrePostulado, token){
+  // 20s de margen, igual que al cargar postulados: con votación en vivo y
+  // muchas personas votando a la vez, Apps Script puede tardar más de los
+  // 12s por defecto en responder.
+  return jsonp({ action:"vote", categoria, postulado: postuladoId, nombre: nombrePostulado, token }, 20000).then(resp=>{
     if(!resp || !resp.ok) throw new Error((resp && resp.error) || "Error desconocido");
     return resp;
   });
+}
+
+// Si el primer intento se queda en "tiempo de espera agotado", puede que el
+// voto sí se haya guardado en el Sheet y solo la respuesta haya tardado en
+// volver. En vez de dejar a la persona con un error sin más, se reintenta
+// una sola vez automáticamente con el MISMO token, así el servidor sabe que
+// es el mismo voto y no lo cuenta dos veces.
+async function enviarVotoConReintento(categoria, postuladoId, nombrePostulado, token){
+  try{
+    return await enviarVoto(categoria, postuladoId, nombrePostulado, token);
+  }catch(err){
+    return await enviarVoto(categoria, postuladoId, nombrePostulado, token);
+  }
 }
 
 function cargarPostulados(){
@@ -242,15 +279,29 @@ function confirmarVoto(p){
       <h3>¿Confirmas tu voto?</h3>
       <p>Vas a votar por <b>${p.nombre}</b> en la categoría <b>${cat ? cat.emoji + " " + cat.nombre : ""}</b>.<br>Solo puedes votar una vez por categoría.</p>
       <div class="modal-actions">
-        <button class="btn btn-ghost" data-action="cerrar" style="flex:1">Cancelar</button>
+        <button class="btn btn-ghost" id="btnCancelarVoto" data-action="cerrar" style="flex:1">Cancelar</button>
         <button class="btn btn-vote" id="btnConfirmarVoto" style="flex:1">Sí, votar</button>
       </div>
     </div>`);
   document.getElementById("btnConfirmarVoto").onclick = async ()=>{
+    // Si ya hay un voto en camino (por ejemplo, por un doble toque), se
+    // ignora este clic en vez de mandar un segundo voto en paralelo.
+    if(envioVotoEnCurso) return;
+    envioVotoEnCurso = true;
+
     const btn = document.getElementById("btnConfirmarVoto");
+    const btnCancelar = document.getElementById("btnCancelarVoto");
     btn.disabled = true; btn.textContent = "Enviando...";
+    // Mientras se envía, tampoco se puede cancelar ni cerrar el diálogo: así
+    // no queda forma de "salir" e intentar de nuevo mientras el primer envío
+    // sigue esperando respuesta del lado del servidor.
+    if(btnCancelar) btnCancelar.disabled = true;
+    const parrafo = document.querySelector(".confirm-box p");
+    if(parrafo) parrafo.innerHTML = "⏳ Enviando tu voto, puede tardar unos segundos por la cantidad de personas votando a la vez. No cierres esta ventana.";
+
+    const token = crearVoteToken();
     try{
-      await enviarVoto(cat.id, p.id, p.nombre);
+      await enviarVotoConReintento(cat.id, p.id, p.nombre, token);
       markVoted(cat.id, p.id);
       closeOverlay();
       renderSections();
@@ -259,7 +310,10 @@ function confirmarVoto(p){
       showToast(`¡Voto registrado por ${p.nombre}!`);
     }catch(err){
       btn.disabled = false; btn.textContent = "Sí, votar";
+      if(btnCancelar) btnCancelar.disabled = false;
       showToast(err.message || "No se pudo registrar el voto, intenta de nuevo.", true);
+    }finally{
+      envioVotoEnCurso = false;
     }
   };
 }
