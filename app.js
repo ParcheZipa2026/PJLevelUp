@@ -6,7 +6,7 @@ const CONFIG = {
   // URL de tu Web App de Apps Script ya desplegada (ver README para el paso a paso)
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxHeJ3FPjWNRSbR6z0JLrrbl4tZ2AfU930wuETKU5PCqykhPPSwk0q1pG8BeOjQuVr0/exec",
   // Fecha y hora límite de votación (hora de Colombia)
-  DEADLINE: new Date("2026-09-20T23:59:59-05:00")
+  DEADLINE: new Date("2026-09-22T23:59:59-05:00")
 };
 
 // Lista de postulados y categorías en memoria: se llenan en init() con lo que
