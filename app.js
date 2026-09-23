@@ -5,7 +5,10 @@
 const CONFIG = {
   // URL de tu Web App de Apps Script ya desplegada (ver README para el paso a paso)
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxHeJ3FPjWNRSbR6z0JLrrbl4tZ2AfU930wuETKU5PCqykhPPSwk0q1pG8BeOjQuVr0/exec",
-  // Fecha y hora límite de votación (hora de Colombia)
+  // Fecha y hora límite de votación (hora de Colombia). A partir de este
+  // momento, el sitio ya no deja votar (además, el propio Apps Script
+  // rechaza cualquier voto que llegue después, por si alguien tenía la
+  // página abierta desde antes).
   DEADLINE: new Date("2026-09-22T23:59:59-05:00")
 };
 
@@ -36,6 +39,7 @@ function getVotedFor(catId){ return localStorage.getItem(votedKey(catId)); }
 function markVoted(catId, postId){
   try{ localStorage.setItem(votedKey(catId), postId); }catch(e){ /* localStorage no disponible */ }
 }
+function votacionCerrada(){ return Date.now() > CONFIG.DEADLINE.getTime(); }
 
 function showToast(msg, isError){
   els.toast.innerHTML = `<span class="ic">${isError ? "⚠️" : "⚡"}</span><span>${msg}</span>`;
@@ -159,8 +163,15 @@ function cargarPostulados(){
 
 // ---------- Render de tarjetas ----------
 function cardHtml(p){
+  const cerrada = votacionCerrada();
   const voted = hasVoted(p.categoria);
   const isThisOne = getVotedFor(p.categoria) === p.id;
+  const deshabilitado = voted || cerrada;
+  let etiquetaBoton;
+  if(isThisOne) etiquetaBoton = "✓ Tu voto";
+  else if(cerrada) etiquetaBoton = "Votación cerrada";
+  else if(voted) etiquetaBoton = "Ya votaste";
+  else etiquetaBoton = "Votar";
   return `
   <div class="card" data-id="${p.id}">
     <div class="photo-wrap">
@@ -174,8 +185,8 @@ function cardHtml(p){
       <p class="resumen">${p.resumen}</p>
       <div class="actions">
         <button class="btn btn-ghost" data-action="ver" data-id="${p.id}">Ver historia</button>
-        <button class="btn btn-vote ${isThisOne ? "voted" : ""}" data-action="votar" data-id="${p.id}" ${voted ? "disabled" : ""}>
-          ${isThisOne ? "✓ Tu voto" : (voted ? "Ya votaste" : "Votar")}
+        <button class="btn btn-vote ${isThisOne ? "voted" : ""}" data-action="votar" data-id="${p.id}" ${deshabilitado ? "disabled" : ""}>
+          ${etiquetaBoton}
         </button>
       </div>
     </div>
@@ -208,8 +219,10 @@ function renderCatNav(){
 // ---------- Modal de detalle ----------
 function modalHtml(p){
   const cat = CATEGORIAS.find(c=>c.id===p.categoria);
+  const cerrada = votacionCerrada();
   const voted = hasVoted(p.categoria);
   const isThisOne = getVotedFor(p.categoria) === p.id;
+  const deshabilitado = voted || cerrada;
   const gallery = (p.evidenciaIds||[]).length ? `
     <h4>Evidencia</h4>
     <div class="gallery">${p.evidenciaIds.map(id=>`<img src="${driveImg(id,500)}" alt="Evidencia de ${p.nombre}" loading="lazy">`).join("")}</div>` : "";
@@ -231,8 +244,8 @@ function modalHtml(p){
       <p>${p.logro}</p>
       ${gallery}
       <div class="modal-actions">
-        <button class="btn btn-vote ${isThisOne ? "voted" : ""}" data-action="votar" data-id="${p.id}" ${voted ? "disabled" : ""} style="flex:1">
-          ${isThisOne ? "✓ Ya votaste por él/ella" : (voted ? "Ya votaste en esta categoría" : "⚡ Votar por " + p.nombre.split(" ")[0])}
+        <button class="btn btn-vote ${isThisOne ? "voted" : ""}" data-action="votar" data-id="${p.id}" ${deshabilitado ? "disabled" : ""} style="flex:1">
+          ${isThisOne ? "✓ Ya votaste por él/ella" : (cerrada ? "Votación cerrada" : (voted ? "Ya votaste en esta categoría" : "⚡ Votar por " + p.nombre.split(" ")[0]))}
         </button>
       </div>
     </div>`;
@@ -302,6 +315,13 @@ function confirmarVoto(p){
       </div>
     </div>`);
   document.getElementById("btnConfirmarVoto").onclick = async ()=>{
+    // Por si el diálogo ya estaba abierto desde antes de que cerrara la
+    // votación (o alguien intenta forzar el envío): no se manda el voto.
+    if(votacionCerrada()){
+      showToast("La votación ya cerró.", true);
+      closeOverlay();
+      return;
+    }
     // Si ya hay un voto en camino (por ejemplo, por un doble toque), se
     // ignora este clic en vez de mandar un segundo voto en paralelo.
     if(envioVotoEnCurso) return;
@@ -385,12 +405,24 @@ function wireCatNav(){
 }
 
 // ---------- Cuenta regresiva ----------
+let yaSeAvisoCierre = false;
 function tickCountdown(){
   const now = new Date();
   const diff = CONFIG.DEADLINE - now;
   if(diff <= 0){
     els.countdownChip.innerHTML = `<b>Votación cerrada</b>`;
     els.countdownBig.innerHTML = `<div class="unit"><span class="num">⚡</span><span class="lbl">Votación cerrada</span></div>`;
+    // La primera vez que el reloj cruza la hora de cierre, se vuelven a
+    // dibujar las tarjetas para que los botones de "Votar" queden
+    // deshabilitados al instante, sin que nadie tenga que recargar la
+    // página.
+    if(!yaSeAvisoCierre){
+      yaSeAvisoCierre = true;
+      if(POSTULADOS.length){
+        renderSections();
+        wireCardEvents();
+      }
+    }
     return;
   }
   const d = Math.floor(diff/86400000);
